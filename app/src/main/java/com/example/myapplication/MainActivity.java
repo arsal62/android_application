@@ -2,11 +2,9 @@ package com.example.myapplication;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -26,7 +24,6 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
@@ -34,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private List<TaskModel> taskList;
     private TaskAdapter taskAdapter;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,17 +42,12 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         taskList = new ArrayList<>();
-        databaseReference = FirebaseDatabase.getInstance().getReference("tasks");
         FirebaseApp.initializeApp(this);
-       FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true); // Call setPersistenceEnabled() before any other usage
 
+        databaseReference = FirebaseDatabase.getInstance().getReference("tasks");
 
-        btn_add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAddTaskDialog();
-            }
-        });
+        btn_add.setOnClickListener(v -> showAddTaskDialog());
         databaseReference.addValueEventListener(new ValueEventListener() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
@@ -98,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+
     private void showAddTaskDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Task");
@@ -106,31 +99,24 @@ public class MainActivity extends AppCompatActivity {
         inputField.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(inputField);
 
-        builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String taskName = inputField.getText().toString().trim();
-                if (!TextUtils.isEmpty(taskName)) {
-                    String id = databaseReference.push().getKey();
-                    TaskModel task = new TaskModel(id, taskName);
-                    databaseReference.child(id).setValue(task);
-                    Toast.makeText(MainActivity.this, "Task added", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "Please enter a task", Toast.LENGTH_SHORT).show();
-                }
+        builder.setPositiveButton("Add", (dialog, which) -> {
+            String taskName = inputField.getText().toString().trim();
+            if (!TextUtils.isEmpty(taskName)) {
+                String id = databaseReference.push().getKey();
+                TaskModel task = new TaskModel(id, taskName);
+                assert id != null;
+                databaseReference.child(id).setValue(task);
+                Toast.makeText(MainActivity.this, "Task added", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, "Please enter a task", Toast.LENGTH_SHORT).show();
             }
         });
 
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
-
     }
+
     private void updateTask(final TaskModel task) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Update Task");
@@ -140,52 +126,36 @@ public class MainActivity extends AppCompatActivity {
         inputField.setText(task.getName());
         builder.setView(inputField);
 
-        builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String updatedTaskName = inputField.getText().toString().trim();
-                if (!TextUtils.isEmpty(updatedTaskName)) {
-                    task.setName(updatedTaskName);
-                    databaseReference.child(task.getId()).setValue(task);
-                    Toast.makeText(MainActivity.this, "Task updated", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "Please enter a task", Toast.LENGTH_SHORT).show();
-                }
+        builder.setPositiveButton("Update", (dialog, which) -> {
+            String updatedTaskName = inputField.getText().toString().trim();
+            if (!TextUtils.isEmpty(updatedTaskName)) {
+                task.setName(updatedTaskName);
+                databaseReference.child(task.getId()).setValue(task);
+                Toast.makeText(MainActivity.this, "Task updated", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, "Please enter a task", Toast.LENGTH_SHORT).show();
             }
         });
 
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
     }
 
-    // Method to delete task
     private void deleteTask(final TaskModel task) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Delete Task");
         builder.setMessage("Are you sure you want to delete this task?");
 
-        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                databaseReference.child(task.getId()).removeValue();
-                Toast.makeText(MainActivity.this, "Task deleted", Toast.LENGTH_SHORT).show();
-            }
+        builder.setPositiveButton("Delete", (dialog, which) -> {
+            databaseReference.child(task.getId()).removeValue();
+            Toast.makeText(MainActivity.this, "Task deleted", Toast.LENGTH_SHORT).show();
         });
 
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
 
         builder.show();
-
     }
 }
+
+
